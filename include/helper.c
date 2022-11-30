@@ -100,6 +100,11 @@ int buttons(SDL_Event event,int x,int y)
     int yo=0; if(pdy<0){ yo=-25;} else{ yo=25;} 
     int ipx=px/64.0, ipx_add_xo=(px+xo)/64.0;
     int ipy=py/64.0, ipy_add_yo=(py+yo)/64.0;
+
+    int pxo=0; if(pdx<0){ pxo=-20;} else{ pxo=20;}                                    //x offset to check map
+    int pyo=0; if(pdy<0){ pyo=-20;} else{ pyo=20;}                                    //y offset to check map
+    int pipx=px/32.0, pipx_add_xo=(px+pxo)/32.0, pipx_sub_xo=(px-pxo)/32.0;             //x position and offset
+    int pipy=py/32.0, pipy_add_yo=(py+pyo)/32.0, pipy_sub_yo=(py-pyo)/32.0;             //y position and offset
     switch (event.type)
     {
         case SDL_QUIT:
@@ -110,47 +115,26 @@ int buttons(SDL_Event event,int x,int y)
             {
                 case SDL_SCANCODE_W:
                 case SDL_SCANCODE_UP:
-                    Keys.w = 1;
+                    if(map[pipy*mapX        + pipx_add_xo]==0){ px+=pdx*0.2*fps;}
+                    if(map[pipy_add_yo*mapX + pipx       ]==0){ py+=pdy*0.2*fps;}
                     break;
                 case SDL_SCANCODE_A:
                 case SDL_SCANCODE_LEFT:
-                    Keys.a = 1;
+                    pa+=0.2*fps; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
                     break;
                 case SDL_SCANCODE_S:
                 case SDL_SCANCODE_DOWN:
-                    Keys.s = 1;
+                    if(map[pipy*mapX        + pipx_sub_xo]==0){ px-=pdx*0.2*fps;}
+                    if(map[pipy_sub_yo*mapX + pipx       ]==0){ py-=pdy*0.2*fps;}
                     break;
                 case SDL_SCANCODE_D:
                 case SDL_SCANCODE_RIGHT:
-                    Keys.d = 1;
+                    pa-=0.2*fps; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
                     break;
                 case SDL_SCANCODE_E: 
                     
                     if(map[ipy_add_yo*mapX+ipx_add_xo]==4){ map[ipy_add_yo*mapX+ipx_add_xo]=0;}
                     break;
-                default:
-                    break;
-            }
-        case SDL_KEYUP:
-            switch (event.key.keysym.scancode)
-            {
-                case SDL_SCANCODE_W:
-                case SDL_SCANCODE_UP:
-                    Keys.w = 0;
-                    break;
-                case SDL_SCANCODE_A:
-                case SDL_SCANCODE_LEFT:
-                    Keys.a = 0;
-                    break;
-                case SDL_SCANCODE_S:
-                case SDL_SCANCODE_DOWN:
-                    Keys.s = 0;
-                    break;
-                case SDL_SCANCODE_D:
-                case SDL_SCANCODE_RIGHT:
-                    Keys.d = 0;
-                    break;
-                
                 default:
                     break;
             }
@@ -166,11 +150,12 @@ void drawRays2D(SDL_Renderer *renderer)
 {  
     
     int r,mx,my,mp,dof,side; float vx,vy,rx,ry,ra,xo,yo,disV,disH; 
-    
+    // printf("problem is before vertical");
     ra=FixAng(pa+30);
 
     for (r = 0; r < 120; r++)
     {
+        // printf("problem is on vertical");
         int vmt=0,hmt=0;                                                              //vertical and horizontal map texture number 
   //---Vertical--- 
   dof=0; side=0; disV=100000;
@@ -186,7 +171,7 @@ void drawRays2D(SDL_Renderer *renderer)
    else{ rx+=xo; ry+=yo; dof+=1;}                                               //check next horizontal
   } 
   vx=rx; vy=ry;
-
+  
   //---Horizontal---
   dof=0; disH=100000;
   Tan=1.0/Tan; 
@@ -213,6 +198,8 @@ void drawRays2D(SDL_Renderer *renderer)
   int lineOff = 320 - (lineH>>1);                                               //line offset
 
   depth[r]=disH; //save this line's depth
+
+//   printf("problem is before walls");
   //---draw walls---
   int y;
   float ty=ty_off*ty_step;//+hmt*32;
@@ -229,6 +216,7 @@ void drawRays2D(SDL_Renderer *renderer)
    ty+=ty_step;
   }
  
+//  printf("problem is before floors");
   //---draw floors---
  for(y=lineOff+lineH;y<640;y++)
  {
@@ -237,15 +225,16 @@ void drawRays2D(SDL_Renderer *renderer)
   ty=py/2 - sin(deg)*158*2*32/dy/raFix;
   int mp=mapF[(int)(ty/32.0)*mapX+(int)(tx/32.0)]*32*32;
   int pixel=(((int)(ty)&31)*32 + ((int)(tx)&31))*3+mp*3;
-  int red   =All_Textures[pixel+0]*0.7;
-  int green =All_Textures[pixel+1]*0.7;
-  int blue  =All_Textures[pixel+2]*0.7;
+  int red   =100;//All_Textures[pixel+0]*0.7;
+  int green =200;//All_Textures[pixel+1]*0.7;
+  int blue  =100;//All_Textures[pixel+2]*0.7;
   drawPixel(renderer, 8, red,green,blue,r*8,y);
-        ra=FixAng(ra-1);
+        
+    }
+    ra=FixAng(ra-1);
        
     }
-
-    }
+    // printf("no problem so far");
 }
 
 void drawSky(SDL_Renderer *renderer)     //draw sky and rotate based on player rotation
@@ -288,46 +277,45 @@ void screen(SDL_Renderer *renderer,int v) //draw any full screen image. 120x80 p
 }
 
 
-void display(SDL_Renderer *renderer,  SDL_Event event)
+void display(SDL_Renderer *renderer)
 {  
- //frames per second
- Uint32 ticks_now = SDL_GetTicks();
- Uint32 diff = ticks_now - prev_ticks;
+//  frame2=SDL_GetTicks64(); fps=(frame2-frame1); frame1=SDL_GetTicks64(); 
 
- prev_ticks = ticks_now;
-
-//  if(gameState==0){ init(renderer,event); fade=0; timer=0; gameState=1;} //init game
- if(gameState==1){ screen(renderer, 1); timer+=1*fps; fade=0; if(timer >= 1000){fps = (float)frames_drawn / (float)(timer/1000.0f);frames_drawn = 0;timer = 0;timer=0; gameState=2;}} //start screen
- if(gameState==2) //The main game loop
- {
-    // printf("this works");
-    //buttons
-    drawSky(renderer);
-    drawRays2D(renderer);
-    drawSprite(renderer);
-    if(Keys.a==1){ pa+=0.2*fps; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));} 	
-    if(Keys.d==1){ pa-=0.2*fps; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));} 
-
-    int xo=0; if(pdx<0){ xo=-20;} else{ xo=20;}                                    //x offset to check map
-    int yo=0; if(pdy<0){ yo=-20;} else{ yo=20;}                                    //y offset to check map
-    int ipx=px/64.0, ipx_add_xo=(px+xo)/64.0, ipx_sub_xo=(px-xo)/64.0;             //x position and offset
-    int ipy=py/64.0, ipy_add_yo=(py+yo)/64.0, ipy_sub_yo=(py-yo)/64.0;             //y position and offset
-    if(Keys.w==1)                                                                  //move forward
-    {  
-    if(map[ipy*mapX        + ipx_add_xo]==0){ px+=pdx*0.2*fps;}
-    if(map[ipy_add_yo*mapX + ipx       ]==0){ py+=pdy*0.2*fps;}
-    }
-    if(Keys.s==1)                                                                  //move backward
-    { 
-    if(map[ipy*mapX        + ipx_sub_xo]==0){ px-=pdx*0.2*fps;}
-    if(map[ipy_sub_yo*mapX + ipx       ]==0){ py-=pdy*0.2*fps;}
-    } 
+//  if(gameState==0){ init(); fade=0; timer=0; gameState=1;} //init game
+//  if(gameState==1){ screen(renderer, 1); timer+=1*fps; if(timer>2000){ fade=0; timer=0; gameState=2;}} //start screen
+ 
+//  if(gameState==2) //The main game loop
+//  {
     
-    if( (int)px>>6==1 && (int)py>>6==1 ){ fade=0; timer=0; gameState=3;} //Entered block 1, Win game!!
-}
+    // buttons
+    drawSky(renderer);
+    // printf("this works");
+    drawRays2D(renderer);
+    // drawSprite(renderer);
 
- if(gameState==3){ screen(renderer, 2); timer+=1*fps; if(timer>2000){ fade=0; timer=0; event.type =SDL_QUIT;}} //won screen
- if(gameState==4){ screen(renderer, 3); timer+=1*fps; if(timer>2000){ fade=0; timer=0; event.type = SDL_QUIT;}} //lost screen
+    // if(Keys.a==1)	
+    // if(Keys.d==1){ pa-=0.2*fps; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));} 
+
+    // int xo=0; if(pdx<0){ xo=-20;} else{ xo=20;}                                    //x offset to check map
+    // int yo=0; if(pdy<0){ yo=-20;} else{ yo=20;}                                    //y offset to check map
+    // int ipx=px/32.0, ipx_add_xo=(px+xo)/32.0, ipx_sub_xo=(px-xo)/32.0;             //x position and offset
+    // int ipy=py/32.0, ipy_add_yo=(py+yo)/32.0, ipy_sub_yo=(py-yo)/32.0;             //y position and offset
+    // if(Keys.w==1)                                                                  //move forward
+    // {  
+    // if(map[ipy*mapX        + ipx_add_xo]==0){ px+=pdx*0.2*fps;}
+    // if(map[ipy_add_yo*mapX + ipx       ]==0){ py+=pdy*0.2*fps;}
+    // // }
+    // if(Keys.s==1)                                                                  //move backward
+    // { 
+    // if(map[ipy*mapX        + ipx_sub_xo]==0){ px-=pdx*0.2*fps;}
+    // if(map[ipy_sub_yo*mapX + ipx       ]==0){ py-=pdy*0.2*fps;}
+    // } 
+    
+    // if( (int)px>>6==1 && (int)py>>6==1 ){ fade=0; timer=0; gameState=3;} //Entered block 1, Win game!!
+// }
+
+//  if(gameState==3){ screen(renderer, 2); timer+=1*fps; if(timer>2000){ fade=0; timer=0; event.type =SDL_QUIT;}} //won screen
+//  if(gameState==4){ screen(renderer, 3); timer+=1*fps; if(timer>2000){ fade=0; timer=0; event.type = SDL_QUIT;}} //lost screen
 
 }
 
@@ -343,6 +331,7 @@ void init(SDL_Renderer *renderer, SDL_Event event)
     sp[1].type=2; sp[1].state=1; sp[1].map=1; sp[1].x=1.5*64; sp[1].y=4.5*64; sp[1].z= 0; //light 1
     sp[2].type=2; sp[2].state=1; sp[2].map=1; sp[2].x=3.5*64; sp[2].y=4.5*64; sp[2].z= 0; //light 2
     sp[3].type=3; sp[3].state=1; sp[3].map=2; sp[3].x=2.5*64; sp[3].y=2*64;   sp[3].z=20; //enemy
+     
 
     while (close_game == 0) {
 
@@ -354,8 +343,14 @@ void init(SDL_Renderer *renderer, SDL_Event event)
                 break;
         }
         SDL_SetRenderDrawColor(renderer,70,70,70,0);
-        SDL_RenderClear(renderer);
-        display(renderer,event);
+        // SDL_RenderClear(renderer);
+        frame2=SDL_GetTicks64(); fps=(frame2-frame1); frame1=SDL_GetTicks64(); 
+
+        if (gameState == 1) {screen(renderer, 1); timer+=1*fps; if(timer>2000){ fade=0; timer=0; gameState=2;}}
+        // drawSky(renderer);
+        // drawRays2D(renderer);
+        // drawSprite(renderer);
+        display(renderer);
         
         SDL_RenderPresent(renderer);
     }

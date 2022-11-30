@@ -12,14 +12,13 @@ float px,py,pdx,pdy,pa;
 
 float px,py,pdx,pdy,pa;
 float frame1,frame2,fps;
-int gameState=2; //game state. init, start screen, game loop, win/lose
+int gameState=1, timer = 0; //game state. init, start screen, game loop, win/lose
 float fade=0;             //the 3 screens can fade up from black
 
 int frames_drawn = 0;
-Uint32 timer = 0;
+// Uint32 timer = 0;
 float fps = 0.0f;
-Uint32 prev_ticks = SDL_GetTicks;
-
+Uint32 prev_ticks= 0;
 typedef struct
 {
  int w,a,d,s;                     //button state on off
