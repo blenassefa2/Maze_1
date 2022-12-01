@@ -78,7 +78,7 @@ void drawRays2D(SDL_Renderer *renderer)
 
     ra=pa-DR*30; if (ra<0){ra+=2*PI;}if(ra>2*PI){ra-=2*PI;}
 
-    for (r = 0; r < 70; r++)
+    for (r = 0; r < 120; r++)
     {
         // horizontal lines
         dof=0;
@@ -111,7 +111,7 @@ void drawRays2D(SDL_Renderer *renderer)
         }
         if (disV<disH) {rx=vx;ry=vy;disT=disV; SDL_SetRenderDrawColor(renderer,250,0,0,0);}
         if (disV>disH) {rx=hx;ry=hy;disT=disH;SDL_SetRenderDrawColor(renderer,200,0,0,0);}
-        SDL_RenderDrawLine(renderer, px,py,rx,ry);
+        // SDL_RenderDrawLine(renderer, px,py,rx,ry);
         
         //draw the 3D walls
         float ca=pa-ra;if (ca<0){ca+=2*PI;}if(ca>2*PI){ca-=2*PI;} disT=disT*cos(ca);
@@ -119,19 +119,19 @@ void drawRays2D(SDL_Renderer *renderer)
         float lineO = 160-lineH/2;
         
     
-        SDL_Rect wall = {r*8+530, lineO, 8, lineH};
+        SDL_Rect wall = {r*8, lineO, 8, lineH};
       
         SDL_RenderDrawRect(renderer, &wall);
         SDL_RenderFillRect(renderer,&wall);
 
-        ra+=DR; if (ra<0){ra+=2*PI;}if(ra>2*PI){ra-=2*PI;}
+        ra+=DR-0.01; if (ra<0){ra+=2*PI;}if(ra>2*PI){ra-=2*PI;}
     }
 
 }
 
 void display(SDL_Renderer *renderer)
 {   
- drawMap2D(renderer);
+//  drawMap2D(renderer);
  drawPlayer2D(renderer);
  drawRays2D(renderer);
 
