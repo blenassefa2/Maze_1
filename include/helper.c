@@ -74,21 +74,21 @@ int buttons(SDL_Event event)
             {
                 case SDL_SCANCODE_W:
                 case SDL_SCANCODE_UP:
-                    if(map[ipy*mapX        + ipx_add_xo]==0){ px+=pdx*5;}
-                    if(map[ipy_add_yo*mapX + ipx       ]==0){ py+=pdy*5;}
+                    if(map[ipy*mapX        + ipx_add_xo]==0){ px+=pdx*0.2*fps;}
+                    if(map[ipy_add_yo*mapX + ipx       ]==0){ py+=pdy*0.2*fps;}
                     break;
                 case SDL_SCANCODE_A:
                 case SDL_SCANCODE_LEFT:
-                    pa+=5; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
+                    pa+=0.2*fps; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
                     break;
                 case SDL_SCANCODE_S:
                 case SDL_SCANCODE_DOWN:
-                    if(map[ipy*mapX        + ipx_sub_xo]==0){ px-=pdy*5;}
-                    if(map[ipy_sub_yo*mapX + ipx       ]==0){ py-=pdy*5;}
+                    if(map[ipy*mapX        + ipx_sub_xo]==0){ px-=pdy*0.2*fps;}
+                    if(map[ipy_sub_yo*mapX + ipx       ]==0){ py-=pdy*0.2*fps;}
                     break;
                 case SDL_SCANCODE_D:
                 case SDL_SCANCODE_RIGHT:
-                    pa-=5; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
+                    pa-=0.2*fps; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
                     break;
                 case SDL_SCANCODE_E:
                     door  = isdoor();
@@ -168,13 +168,13 @@ void drawRays2D(SDL_Renderer *renderer)
   SDL_SetRenderDrawColor(renderer,0,255,0,0);
   if(disV<disH){ hmt=vmt; shade=0.5; rx=vx; ry=vy; disH=disV;   SDL_SetRenderDrawColor(renderer,0,200,0,0);;}//horizontal hit first
 //   glLineWidth(2); glBegin(GL_LINES); glVertex2i(px,py); glVertex2i(rx,ry); glEnd();//draw 2D ray
-     SDL_RenderDrawLine(renderer, px,py,rx,ry);
-  int ca=FixAng(pa-ra); disH=disH*cos(degToRad(ca));                            //fix fisheye 
-  int lineH = (mapS*320)/(disH); 
+    //  SDL_RenderDrawLine(renderer, px,py,rx,ry);
+//   int ca=FixAng(pa-ra+0.5); disH=disH*cos(degToRad(ca));                            //fix fisheye 
+  int lineH = (mapS*640)/(disH); 
   float ty_step=64.0/(float)lineH; 
   float ty_off=0; 
-  if(lineH>320){ ty_off=(lineH-320)/2.0; lineH=320;}                            //line height and limit
-  int lineOff = 160 - (lineH>>1);                                               //line offset
+  if(lineH>640){ ty_off=(lineH-640)/2.0; lineH=640;}                            //line height and limit
+  int lineOff = 320 - (lineH>>1);                                               //line offset
 
   //---draw walls---
   int y;
@@ -211,16 +211,16 @@ void drawRays2D(SDL_Renderer *renderer)
 //   int blue  =grass[pixel+2]*0.7;
 //   drawPixel(renderer,8,8,red,green,blue,r*8,y);
 
- //---draw ceiling---
-//   mp=mapC[(int)(ty/32.0)*mapX+(int)(tx/32.0)]*32*32;
-//   pixel=(((int)(ty)&31)*32 + ((int)(tx)&31))*3+mp*3;
-//   red   =texture1[pixel+0];
-//   green =texture1[pixel+1];
-//   blue  =texture1[pixel+2];
-//   if(mp>0){ drawPixel(renderer,8,8,red,green,blue,r*8,320-y);}
+//  //---draw ceiling---
+// //   mp=mapC[(int)(ty/32.0)*mapX+(int)(tx/32.0)]*32*32;
+// //   pixel=(((int)(ty)&31)*32 + ((int)(tx)&31))*3+mp*3;
+// //   red   =texture1[pixel+0];
+// //   green =texture1[pixel+1];
+// //   blue  =texture1[pixel+2];
+// //   if(mp>0){ drawPixel(renderer,8,8,red,green,blue,r*8,320-y);}
 //  }
  
-       ra=FixAng(ra-0.5); 
+       ra=FixAng(ra-1); 
     }
 
 }
@@ -242,10 +242,10 @@ void drawSky(SDL_Renderer *renderer)     //draw sky and rotate based on player r
 
 void display(SDL_Renderer *renderer)
 {
-    // frame2=SDL_GetTicks64(); fps=(frame2-frame1); frame1=SDL_GetTicks64(); 
- drawMap2D(renderer);
-//  drawSky(renderer);
- drawPlayer2D(renderer);
+    frame2=SDL_GetTicks64(); fps=(frame2-frame1); frame1=SDL_GetTicks64(); 
+//  drawMap2D(renderer);
+ drawSky(renderer);
+//  drawPlayer2D(renderer);
  drawRays2D(renderer);
 
 }
