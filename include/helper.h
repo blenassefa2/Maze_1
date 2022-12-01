@@ -29,7 +29,7 @@ void drawPlayer2D(SDL_Renderer *renderer);
 int buttons(SDL_Event event);
 void drawRays2D(SDL_Renderer *renderer);
 void display(SDL_Renderer *renderer);
-void init(SDL_Renderer *renderer, SDL_Event event);
+void init(SDL_Renderer *renderer, SDL_Event event, SDL_Texture*, SDL_Texture*);
 float degToRad(int a);
 int FixAng(int a);
 float distance(float ax, float ay, float bx, float by, float ang);

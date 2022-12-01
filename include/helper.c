@@ -16,7 +16,7 @@ void drawMap2D(SDL_Renderer *renderer)
     else
         SDL_SetRenderDrawColor(renderer,0,0,0,0); 
 
-    xo=x*(mapS + 1); yo=y*(mapS+1);
+    xo=x*(mapS + 1); yo=y*(mapS +1);
     tile.x = xo , tile.y = yo;
     SDL_RenderDrawRect(renderer,&tile);
     SDL_RenderFillRect(renderer,&tile);
@@ -35,9 +35,16 @@ void drawPixel(SDL_Renderer *renderer,int width, int height, int r, int g, int b
 }
 void drawPlayer2D(SDL_Renderer *renderer)
 {
+//  SDL_Rect player = {px, py, 8, 8};
+  
+
+ 
+//  SDL_SetRenderDrawColor(renderer,255,255,0,255);
+//  SDL_RenderDrawRect(renderer, &player);
+//  SDL_RenderFillRect(renderer,&player);
  drawPixel(renderer, 8,8,255,255,0,px,py);
  
- SDL_RenderDrawLine(renderer, px,py,px+pdx*5,py+pdy*5);
+//  SDL_RenderDrawLine(renderer, px,py,px+pdx*5,py+pdy*5);
 }
 
 int isdoor() 
@@ -67,21 +74,21 @@ int buttons(SDL_Event event)
             {
                 case SDL_SCANCODE_W:
                 case SDL_SCANCODE_UP:
-                    if(map[ipy*mapX        + ipx_add_xo]==0){ px+=pdx*0.2*fps;}
-                    if(map[ipy_add_yo*mapX + ipx       ]==0){ py+=pdy*0.2*fps;}
+                    if(map[ipy*mapX        + ipx_add_xo]==0){ px+=pdx*5;}
+                    if(map[ipy_add_yo*mapX + ipx       ]==0){ py+=pdy*5;}
                     break;
                 case SDL_SCANCODE_A:
                 case SDL_SCANCODE_LEFT:
-                    pa+=0.2*fps; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
+                    pa+=5; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
                     break;
                 case SDL_SCANCODE_S:
                 case SDL_SCANCODE_DOWN:
-                    if(map[ipy*mapX        + ipx_sub_xo]==0){ px-=pdy*0.2*fps;}
-                    if(map[ipy_sub_yo*mapX + ipx       ]==0){ py-=pdy*0.2*fps;}
+                    if(map[ipy*mapX        + ipx_sub_xo]==0){ px-=pdy*5;}
+                    if(map[ipy_sub_yo*mapX + ipx       ]==0){ py-=pdy*5;}
                     break;
                 case SDL_SCANCODE_D:
                 case SDL_SCANCODE_RIGHT:
-                    pa-=0.2*fps; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
+                    pa-=5; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
                     break;
                 case SDL_SCANCODE_E:
                     door  = isdoor();
@@ -109,10 +116,6 @@ int all_textures(int hmt, int pixel)
             if (door[pixel] == 0)
                 return texture1[pixel];
             return door[pixel];
-        case 3:
-            if (torch[pixel] == 0)
-                return texture1[pixel];
-            return torch[pixel];
         default:
         break;
     }
@@ -157,10 +160,12 @@ void drawRays2D(SDL_Renderer *renderer)
   } 
   
   float shade=1;
+//   glColor3f(0,0.8,0);
   SDL_SetRenderDrawColor(renderer,0,255,0,0);
   if(disV<disH){ hmt=vmt; shade=0.5; rx=vx; ry=vy; disH=disV;   SDL_SetRenderDrawColor(renderer,0,200,0,0);;}//horizontal hit first
-
-  int ca=FixAng(pa-ra+0.5); disH=disH*cos(degToRad(ca));                            //fix fisheye 
+//   glLineWidth(2); glBegin(GL_LINES); glVertex2i(px,py); glVertex2i(rx,ry); glEnd();//draw 2D ray
+    //  SDL_RenderDrawLine(renderer, px,py,rx,ry);
+  int ca=FixAng(pa-ra); disH=disH*cos(degToRad(ca));                            //fix fisheye 
   int lineH = (mapS*320)/(disH); 
   float ty_step=64.0/(float)lineH; 
   float ty_off=0; 
@@ -180,11 +185,15 @@ void drawRays2D(SDL_Renderer *renderer)
    int green =all_textures(hmt,pixel+1)*shade;
    int blue  =all_textures(hmt,pixel+2)*shade;//door green
    drawPixel(renderer,8,8,red,green,blue, r*8+530,y+lineOff);//draw vertical wall  
-
+//    if(hmt==0){ glColor3f(c    , c/2.0, c/2.0);} //checkerboard red
+//    if(hmt==1){ glColor3f(c    , c    , c/2.0);} //Brick yellow
+//    if(hmt==2){ glColor3f(c/2.0, c/2.0, c    );} //window blue
+//    if(hmt==3){ glColor3f(c/2.0, c    , c/2.0);} //door green
+//    glPointSize(8);glBegin(GL_POINTS);glVertex2i(r*8+530,y+lineOff);glEnd();//draw vertical wall  
    ty+=ty_step;
   }
 
-    // ------draw floors-----
+  // ------draw floors-----
    for(y=lineOff+lineH;y<320;y++)
  {
   float dy=y-(320/2.0), deg=degToRad(ra), raFix=cos(degToRad(FixAng(pa-ra)));
@@ -192,11 +201,13 @@ void drawRays2D(SDL_Renderer *renderer)
   ty=py/2 - sin(deg)*158*2*32/dy/raFix;
   int mp=mapF[(int)(ty/32.0)*mapX+(int)(tx/32.0)]*32*32;
   int pixel=(((int)(py + ty*2)&63)*64 + ((int)(px + tx*2)&63))*3+mp*3;
+//   int pixel=(((int)(ty)&63)*64 + ((int)(tx)&63))*3+mp*3;
   int red   =grass[pixel+0]*0.7;
   int green =grass[pixel+1]*0.7;
   int blue  =grass[pixel+2]*0.7;
   drawPixel(renderer,8,8,red,green,blue,r*8+530,y);
 
+ 
  }
  
        ra=FixAng(ra-1); 
@@ -214,25 +225,40 @@ void drawSky(SDL_Renderer *renderer)     //draw sky and rotate based on player r
    int red   =sky[pixel+0];
    int green =sky[pixel+1];
    int blue  =sky[pixel+2];
-   drawPixel(renderer,4,4,red,green,blue, x*8+530,y*4);
+   drawPixel(renderer,8,8,red,green,blue, x*8+530,y*8);
   }	
  }
 }
-
+void drawStatistics(SDL_Renderer *renderer)
+{
+    // drawPixel(renderer, 530,320, 215,200,0,530, 340);
+    SDL_Rect stat = {530,340,500,180};
+    SDL_RenderCopy(renderer,stats,NULL,&stat);
+    // SDL_Rect key = {530,340,500,180};
+    // SDL_RenderCopy(renderer,stats,NULL,&key);
+    // SDL_RenderDrawRect(renderer, &key);
+    // SDL_RenderFillRect(renderer,&key);
+    
+}
 void display(SDL_Renderer *renderer)
 {
-    frame2=SDL_GetTicks64(); fps=2*(frame2-frame1); frame1=SDL_GetTicks64(); 
-//  drawMap2D(renderer);
+    // frame2=SDL_GetTicks64(); fps=(frame2-frame1); frame1=SDL_GetTicks64(); 
+ drawMap2D(renderer);
  drawSky(renderer);
-//  drawPlayer2D(renderer);
+ drawPlayer2D(renderer);
  drawRays2D(renderer);
+ drawStatistics(renderer);
 
 }
 
-void init(SDL_Renderer *renderer, SDL_Event event)
+
+
+void init(SDL_Renderer *renderer, SDL_Event event,SDL_Texture* wallTex, SDL_Texture* statsTexture)
 {
     // fps = 25;
     px=150; py=400; pa=90;
+    keys = wallTex;
+    stats = statsTexture;
     int close_game = 0;
     pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
     while (close_game == 0) {

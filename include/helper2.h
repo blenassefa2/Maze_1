@@ -12,6 +12,8 @@ float px,py,pdx,pdy,pa;
 float frame1,frame2,fps;
 //the map array. Edit to change level but keep the outer walls
 
+SDL_Texture* keys;
+SDL_Texture* stats;
 // int All_Textures [3][32*32];
 
 // All_Textures[0] = texture2;
