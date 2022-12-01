@@ -35,13 +35,6 @@ void drawPixel(SDL_Renderer *renderer,int width, int height, int r, int g, int b
 }
 void drawPlayer2D(SDL_Renderer *renderer)
 {
-//  SDL_Rect player = {px, py, 8, 8};
-  
-
- 
-//  SDL_SetRenderDrawColor(renderer,255,255,0,255);
-//  SDL_RenderDrawRect(renderer, &player);
-//  SDL_RenderFillRect(renderer,&player);
  drawPixel(renderer, 8,8,255,255,0,px,py);
  
  SDL_RenderDrawLine(renderer, px,py,px+pdx*5,py+pdy*5);
@@ -164,17 +157,15 @@ void drawRays2D(SDL_Renderer *renderer)
   } 
   
   float shade=1;
-//   glColor3f(0,0.8,0);
   SDL_SetRenderDrawColor(renderer,0,255,0,0);
   if(disV<disH){ hmt=vmt; shade=0.5; rx=vx; ry=vy; disH=disV;   SDL_SetRenderDrawColor(renderer,0,200,0,0);;}//horizontal hit first
-//   glLineWidth(2); glBegin(GL_LINES); glVertex2i(px,py); glVertex2i(rx,ry); glEnd();//draw 2D ray
-    //  SDL_RenderDrawLine(renderer, px,py,rx,ry);
-//   int ca=FixAng(pa-ra+0.5); disH=disH*cos(degToRad(ca));                            //fix fisheye 
-  int lineH = (mapS*640)/(disH); 
+
+  int ca=FixAng(pa-ra+0.5); disH=disH*cos(degToRad(ca));                            //fix fisheye 
+  int lineH = (mapS*320)/(disH); 
   float ty_step=64.0/(float)lineH; 
   float ty_off=0; 
-  if(lineH>640){ ty_off=(lineH-640)/2.0; lineH=640;}                            //line height and limit
-  int lineOff = 320 - (lineH>>1);                                               //line offset
+  if(lineH>320){ ty_off=(lineH-320)/2.0; lineH=320;}                            //line height and limit
+  int lineOff = 160 - (lineH>>1);                                               //line offset
 
   //---draw walls---
   int y;
@@ -188,37 +179,25 @@ void drawRays2D(SDL_Renderer *renderer)
    int red   =all_textures(hmt,pixel+0)*shade;
    int green =all_textures(hmt,pixel+1)*shade;
    int blue  =all_textures(hmt,pixel+2)*shade;//door green
-   drawPixel(renderer,8,8,red,green,blue, r*8,y+lineOff);//draw vertical wall  
-//    if(hmt==0){ glColor3f(c    , c/2.0, c/2.0);} //checkerboard red
-//    if(hmt==1){ glColor3f(c    , c    , c/2.0);} //Brick yellow
-//    if(hmt==2){ glColor3f(c/2.0, c/2.0, c    );} //window blue
-//    if(hmt==3){ glColor3f(c/2.0, c    , c/2.0);} //door green
-//    glPointSize(8);glBegin(GL_POINTS);glVertex2i(r*8+530,y+lineOff);glEnd();//draw vertical wall  
+   drawPixel(renderer,8,8,red,green,blue, r*8+530,y+lineOff);//draw vertical wall  
+
    ty+=ty_step;
   }
 
-//   // ------draw floors-----
-//    for(y=lineOff+lineH;y<320;y++)
-//  {
-//   float dy=y-(320/2.0), deg=degToRad(ra), raFix=cos(degToRad(FixAng(pa-ra)));
-//   tx=px/2 + cos(deg)*158*2*32/dy/raFix;
-//   ty=py/2 - sin(deg)*158*2*32/dy/raFix;
-//   int mp=mapF[(int)(ty/32.0)*mapX+(int)(tx/32.0)]*32*32;
-//   int pixel=(((int)(py + ty*2)&63)*64 + ((int)(px + tx*2)&63))*3+mp*3;
-// //   int pixel=(((int)(ty)&63)*64 + ((int)(tx)&63))*3+mp*3;
-//   int red   =grass[pixel+0]*0.7;
-//   int green =grass[pixel+1]*0.7;
-//   int blue  =grass[pixel+2]*0.7;
-//   drawPixel(renderer,8,8,red,green,blue,r*8,y);
+    // ------draw floors-----
+   for(y=lineOff+lineH;y<320;y++)
+ {
+  float dy=y-(320/2.0), deg=degToRad(ra), raFix=cos(degToRad(FixAng(pa-ra)));
+  tx=px/2 + cos(deg)*158*2*32/dy/raFix;
+  ty=py/2 - sin(deg)*158*2*32/dy/raFix;
+  int mp=mapF[(int)(ty/32.0)*mapX+(int)(tx/32.0)]*32*32;
+  int pixel=(((int)(py + ty*2)&63)*64 + ((int)(px + tx*2)&63))*3+mp*3;
+  int red   =grass[pixel+0]*0.7;
+  int green =grass[pixel+1]*0.7;
+  int blue  =grass[pixel+2]*0.7;
+  drawPixel(renderer,8,8,red,green,blue,r*8+530,y);
 
-//  //---draw ceiling---
-// //   mp=mapC[(int)(ty/32.0)*mapX+(int)(tx/32.0)]*32*32;
-// //   pixel=(((int)(ty)&31)*32 + ((int)(tx)&31))*3+mp*3;
-// //   red   =texture1[pixel+0];
-// //   green =texture1[pixel+1];
-// //   blue  =texture1[pixel+2];
-// //   if(mp>0){ drawPixel(renderer,8,8,red,green,blue,r*8,320-y);}
-//  }
+ }
  
        ra=FixAng(ra-1); 
     }
@@ -235,14 +214,14 @@ void drawSky(SDL_Renderer *renderer)     //draw sky and rotate based on player r
    int red   =sky[pixel+0];
    int green =sky[pixel+1];
    int blue  =sky[pixel+2];
-   drawPixel(renderer,8,8,red,green,blue, x*8+530,y*8);
+   drawPixel(renderer,4,4,red,green,blue, x*8+530,y*4);
   }	
  }
 }
 
 void display(SDL_Renderer *renderer)
 {
-    frame2=SDL_GetTicks64(); fps=(frame2-frame1); frame1=SDL_GetTicks64(); 
+    frame2=SDL_GetTicks64(); fps=2*(frame2-frame1); frame1=SDL_GetTicks64(); 
 //  drawMap2D(renderer);
  drawSky(renderer);
 //  drawPlayer2D(renderer);

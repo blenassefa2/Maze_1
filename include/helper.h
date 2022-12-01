@@ -9,8 +9,8 @@
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
 
-#define WINDOW_WIDTH (960)
-#define WINDOW_HEIGHT (640)
+#define WINDOW_WIDTH (1024)
+#define WINDOW_HEIGHT (510)
 
 #define SPEED (300)
 

@@ -17,5 +17,5 @@ int FixAng(int a)
 
 float distance(float ax, float ay, float bx, float by, float ang)
 { 
-   return cos(degToRad(ang))*(bx-ax)-sin(degToRad(ang))*(by-ay);
+    return cos(degToRad(ang))*(bx-ax)-sin(degToRad(ang))*(by-ay);
 }
