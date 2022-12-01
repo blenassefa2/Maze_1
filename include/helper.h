@@ -9,8 +9,8 @@
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
 
-#define WINDOW_WIDTH (1024)
-#define WINDOW_HEIGHT (510)
+#define WINDOW_WIDTH (960)
+#define WINDOW_HEIGHT (640)
 
 #define SPEED (300)
 
@@ -26,7 +26,7 @@
 
 void drawMap2D(SDL_Renderer *renderer);
 void drawPlayer2D(SDL_Renderer *renderer);
-int buttons(SDL_Event event,int x,int y);
+int buttons(SDL_Event event);
 void drawRays2D(SDL_Renderer *renderer);
 void display(SDL_Renderer *renderer);
 void init(SDL_Renderer *renderer, SDL_Event event);
