@@ -147,7 +147,7 @@ int buttons(SDL_Event event)
 
 }//-----------------------------------------------------------------------------
 
-int all_textures(int hmt, int pixel)
+int allTextures(int hmt, int pixel)
 {
     switch (hmt)
     {
@@ -262,7 +262,8 @@ void drawRays2D()
         // If Horizontal hit first
         if(disV<disH)
             hmt = vmt, shade = 0.5, rx = vx, ry = vy, disH = disV;
-//fix fisheye
+        
+        //fix fisheye
         int ca = FixAng(pa - ra);
         disH = disH * cos(degToRad(ca)); 
         int lineH = (mapS * 640) / (disH); 
@@ -299,9 +300,9 @@ void drawRays2D()
         for (y = 0; y < lineH; y++)
         {
             int pixel=((int)ty * 64 + (int)tx) * 3;
-            int red   = all_textures(hmt, pixel + 0) * shade;
-            int green = all_textures(hmt, pixel + 1) * shade;
-            int blue  = all_textures(hmt, pixel + 2) * shade;
+            int red   = allTextures(hmt, pixel + 0) * shade;
+            int green = allTextures(hmt, pixel + 1) * shade;
+            int blue  = allTextures(hmt, pixel + 2) * shade;
             
             //draw vertical wall with each pixel 
             drawPixel(8, 8, red, green, blue, r * 8, y + lineOff);
@@ -440,9 +441,9 @@ void drawSprite()
                 {
                     
                     int pixel = ((int)textureY * 32 + (int)textureX) * 3;
-                    int red   = all_textures(sp[s].map, pixel + 0);
-                    int green = all_textures(sp[s].map, pixel + 1);
-                    int blue  = all_textures(sp[s].map, pixel + 2);
+                    int red   = allTextures(sp[s].map, pixel + 0);
+                    int green = allTextures(sp[s].map, pixel + 1);
+                    int blue  = allTextures(sp[s].map, pixel + 2);
                     
                     //dont draw if black
                     if(red!=0, green!=0, blue!=0) 
