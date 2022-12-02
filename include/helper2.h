@@ -22,14 +22,20 @@ int gameState = 0, timer = 0;
 int keyCount, heartCount, diamondCount;
 float fade;
 int closeGame = 0;
-//the map array. Edit to change level but keep the outer walls
 
-SDL_Texture* keys;
-SDL_Texture* stats;
+SDL_Renderer *renderer= NULL;
+SDL_Texture* keys = NULL;
+SDL_Texture* stats= NULL;
 SDL_Texture **scores = NULL;
-// int All_Textures [3][32*32];
 
-// All_Textures[0] = texture2;
+typedef struct       //All veriables per sprite
+{
+ int type;           //static, key, enemy
+ int state;          //on off
+ int map;            //texture to show
+ float x,y,z;        //position
+}sprite; sprite sp[4];
+int depth[120];      //hold wall line depth to compare for sprite depth
 
 int map[]= {
  1,1,1,1,2,1,1,1,
@@ -41,15 +47,4 @@ int map[]= {
  1,0,0,3,0,0,0,4,
  1,1,1,1,1,1,1,1,
 };
-
-typedef struct       //All veriables per sprite
-{
- int type;           //static, key, enemy
- int state;          //on off
- int map;            //texture to show
- float x,y,z;        //position
-}sprite; sprite sp[4];
-int depth[120];      //hold wall line depth to compare for sprite depth
-
-
 #endif

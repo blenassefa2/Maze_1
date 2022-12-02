@@ -2,7 +2,7 @@
 COMPILER := gcc
 
 # The file with main function
-SRCS := test.c ../include/mathHelper.c ../include/helper.c
+SRCS := main.c ../include/mathHelper.c ../include/helper.c
 
 # The output application name
 OUTPUT := game

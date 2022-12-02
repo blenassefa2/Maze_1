@@ -24,14 +24,15 @@
 #define DR 0.01754533 //one degreee in radians
 
 
-void drawMap2D(SDL_Renderer *renderer);
-void drawPlayer2D(SDL_Renderer *renderer);
-int buttons(SDL_Renderer *renderer,SDL_Event event);
-void drawRays2D(SDL_Renderer *renderer);
-void display(SDL_Renderer *renderer);
-void init(SDL_Renderer *renderer, SDL_Event event);
+void drawMap2D();
+void drawPlayer2D();
+int buttons(SDL_Event event);
+void drawRays2D();
+void display();
+void init();
+void setUp(SDL_Renderer *gameRenderer);
+void startGame(SDL_Event event);
 float degToRad(int a);
 float FixAng(float a);
-float distance(float ax, float ay, float bx, float by, float ang);
 
 #endif
