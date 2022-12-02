@@ -347,6 +347,22 @@ void pickKeys()
             keyCount += 1, sp[i].state=0;
 
 }
+void pickDiamonds()
+{
+    int i;
+
+    // Pick up each key 
+    for (i = 1; i < 3; i++)
+        if (
+            sp[i].state == 1 
+            && px<sp[i].x+30 
+            && px>sp[i].x-30 
+            && py<sp[i].y+30 
+            && py>sp[i].y-30
+        )
+            diamondCount += 1, sp[i].state=0;
+
+}
 
 void attackPlayer()
 {
@@ -362,8 +378,6 @@ void attackPlayer()
         )
         { 
             heartCount -= 1; 
-            if (heartCount == 0)
-                closeGame = 1;
             gameState=4;
         } //enemy kills
 
@@ -382,13 +396,13 @@ void moveEnemy()
         spxAdd = ((int)sp[i].x + 15) >> 6, spyAdd = ((int)sp[i].y + 15) >> 6; //normal grid position plus     offset
         spxSub = ((int)sp[i].x - 15) >> 6, spySub = ((int)sp[i].y - 15) >> 6; //normal grid position subtract offset
         if (sp[i].x > px && map[spy * 8 + spxSub] == 0)
-            sp[i].x -= 0.04 * fps;
+            sp[i].x -= 0.02 * fps;
         if (sp[i].x < px && map[spy * 8 + spxAdd] == 0)
-            sp[i].x += 0.04 * fps;
+            sp[i].x += 0.02 * fps;
         if (sp[i].y > py && map[spySub * 8 + spx] == 0)
-            sp[i].y -= 0.04 * fps;
+            sp[i].y -= 0.02 * fps;
         if (sp[i].y < py && map[spyAdd * 8 + spx] == 0)
-            sp[i].y += 0.04 * fps;
+            sp[i].y += 0.02 * fps;
     }
 }
 
@@ -404,7 +418,7 @@ void drawSprite()
     float CS=cos(degToRad(pa)), SN=sin(degToRad(pa)); 
 
  	pickKeys();
-    
+    pickDiamonds();
     attackPlayer();
     moveEnemy();
     
@@ -537,8 +551,10 @@ void display()
 
     // Initialize the game
     if(gameState == 0)
+    {
+        init();
         fade=0, timer=0, gameState=1; 
-    
+    }
     // Display title Screen and set gameState
     if(gameState==1)
     { 
@@ -568,7 +584,34 @@ void display()
         {
             drawStatistics(0);
         }
+        // printf("PX: %i, PY: %in", (int)px>>6, (int)py>>6);
+        if ((int)px >> 6 == 6 && (int)py >> 6 == 6)
+            fade = 0, timer = 0, gameState = 3; //Entered block 1, Win game!!
+
     }
+    if(gameState==3)
+    { 
+        screen(2); 
+        timer+=1*fps; 
+        if(timer>2000)
+        { 
+            fade=0; timer=0; gameState=0;
+        }
+    } //won screen
+    if(gameState==4)
+    { 
+        screen(3); 
+        timer+=1*fps;
+        
+        if(timer>2000)
+        {    
+            fade=0; timer=0; gameState=0;
+            if (heartCount == 0)
+                gameState = 5;
+        }
+    } //lost screen
+    if (gameState == 5)
+        closeGame = 1;
 }
 
 void loadImages()
@@ -601,18 +644,20 @@ void init()
 {
     px=150; py=400; pa=90;
     
-    keyCount=0, heartCount=5, diamondCount=0;
-
-    sp[0].type=1; sp[0].state=1; sp[0].map=4; sp[0].x=1.5*64; sp[0].y=5*64;   sp[0].z=20; //key
-    sp[1].type=2; sp[1].state=1; sp[1].map=5; sp[1].x=1.5*64; sp[1].y=4.5*64; sp[1].z= 20; //light 1
-    sp[2].type=2; sp[2].state=1; sp[2].map=5; sp[2].x=4.5*64; sp[2].y=4.5*64; sp[2].z=20; //light 2
+    keyCount=0, diamondCount=0;
+    sp[0].type=1; sp[0].state=1; sp[0].map=4; sp[0].x=1.5*64; sp[0].y=4.5*64;   sp[0].z=20; //key
+    sp[1].type=2; sp[1].state=1; sp[1].map=5; sp[1].x=3.5*64; sp[1].y=5.5*64; sp[1].z= 20; //diamond
+    sp[2].type=2; sp[2].state=1; sp[2].map=5; sp[2].x=4.5*64; sp[2].y=4.5*64; sp[2].z=20; //diamond
     sp[3].type=3; sp[3].state=1; sp[3].map=6; sp[3].x=2.5*64; sp[3].y=2*64;   sp[3].z=20; //enemy
     
     pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
+    
+    
 }
 
 void setUp(SDL_Renderer *gameRenderer)
 {
+    heartCount=2;
     renderer = gameRenderer;
     loadImages();
 }

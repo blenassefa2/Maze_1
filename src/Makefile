@@ -2,13 +2,13 @@
 COMPILER := gcc
 
 # The file with main function
-SRCS := main.c
+SRCS := main.c ../include/mathHelper.c ../include/helper.c
 
 # The output application name
 OUTPUT := game
 
 # Header folder
-HEADERS := -I../include
+HEADERS := -I../Include
 
 # Links folder
 LINKS := -L../lib
