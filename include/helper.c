@@ -5,7 +5,7 @@
 void drawMap2D(SDL_Renderer *renderer)
 {
  int x, y, xo, yo;
- SDL_Rect tile = {0,0,mapS,mapS};
+ SDL_Rect tile = {0,0,mapS/2,mapS/2};
 
  for(y=0;y<mapY;y++)
  {
@@ -16,7 +16,7 @@ void drawMap2D(SDL_Renderer *renderer)
     else
         SDL_SetRenderDrawColor(renderer,0,0,0,0); 
 
-    xo=x*(mapS + 1); yo=y*(mapS +1);
+    xo=x*(mapS/2 + 1); yo=y*(mapS/2 +1);
     tile.x = xo , tile.y = yo;
     SDL_RenderDrawRect(renderer,&tile);
     SDL_RenderFillRect(renderer,&tile);
@@ -42,9 +42,9 @@ void drawPlayer2D(SDL_Renderer *renderer)
 //  SDL_SetRenderDrawColor(renderer,255,255,0,255);
 //  SDL_RenderDrawRect(renderer, &player);
 //  SDL_RenderFillRect(renderer,&player);
- drawPixel(renderer, 8,8,255,255,0,px,py);
+ drawPixel(renderer, 8,8,255,255,0,px/2,py/2);
  
-//  SDL_RenderDrawLine(renderer, px,py,px+pdx*5,py+pdy*5);
+//  SDL_RenderDrawLine(renderer, px/2,py/2,px+pdx*5,py+pdy*5);
 }
 
 int isdoor() 
@@ -57,7 +57,7 @@ int isdoor()
   return -1;
 }
 
-int buttons(SDL_Event event)
+int buttons(SDL_Renderer *renderer, SDL_Event event)
 {
     int door =-1;
     int xo=0; if(pdx<0){ xo=-20;} else{ xo=20;}                                    //x offset to check map
@@ -69,33 +69,42 @@ int buttons(SDL_Event event)
         case SDL_QUIT:
             return -1;
             break;
+        case SDL_KEYUP:
+            if (event.key.keysym.scancode ==SDL_SCANCODE_M){drawMap  = 1;}
+            break;
         case SDL_KEYDOWN:
             switch (event.key.keysym.scancode)
             {
                 case SDL_SCANCODE_W:
                 case SDL_SCANCODE_UP:
-                    if(map[ipy*mapX        + ipx_add_xo]==0){ px+=pdx*5;}
-                    if(map[ipy_add_yo*mapX + ipx       ]==0){ py+=pdy*5;}
+                    if(map[ipy*mapX        + ipx_add_xo]==0){ px+=pdx*0.2*fps;}
+                    if(map[ipy_add_yo*mapX + ipx       ]==0){ py+=pdy*0.2*fps;}
                     break;
                 case SDL_SCANCODE_A:
                 case SDL_SCANCODE_LEFT:
-                    pa+=5; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
+                    pa+=0.2*fps; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
                     break;
                 case SDL_SCANCODE_S:
                 case SDL_SCANCODE_DOWN:
-                    if(map[ipy*mapX        + ipx_sub_xo]==0){ px-=pdy*5;}
-                    if(map[ipy_sub_yo*mapX + ipx       ]==0){ py-=pdy*5;}
+                    if(map[ipy*mapX        + ipx_sub_xo]==0){ px-=pdy*0.2*fps;}
+                    if(map[ipy_sub_yo*mapX + ipx       ]==0){ py-=pdy*0.2*fps;}
                     break;
                 case SDL_SCANCODE_D:
                 case SDL_SCANCODE_RIGHT:
-                    pa-=5; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
+                    pa-=0.2*fps; pa=FixAng(pa); pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
                     break;
                 case SDL_SCANCODE_E:
                     door  = isdoor();
-                    if (door > -1){map[door] = 0;}
+                    if (door > -1 && keyCount > 0){map[door] = 0;keyCount-=1;}
+                    break;
+                case SDL_SCANCODE_M:
+                    drawMap =0;
+                    break;
                 default:
                     break;
             }
+            break;
+        
         default:
             break;
     }
@@ -116,6 +125,17 @@ int all_textures(int hmt, int pixel)
             if (door[pixel] == 0)
                 return texture1[pixel];
             return door[pixel];
+        case 3:
+            if (finish[pixel] == 0)
+                return texture1[pixel];
+            return finish[pixel];
+        case 4:
+            return key[pixel];
+        case 5:
+            return diamond[pixel];
+        case 6:
+            return knight[pixel];
+
         default:
         break;
     }
@@ -166,12 +186,13 @@ void drawRays2D(SDL_Renderer *renderer)
 //   glLineWidth(2); glBegin(GL_LINES); glVertex2i(px,py); glVertex2i(rx,ry); glEnd();//draw 2D ray
     //  SDL_RenderDrawLine(renderer, px,py,rx,ry);
   int ca=FixAng(pa-ra); disH=disH*cos(degToRad(ca));                            //fix fisheye 
-  int lineH = (mapS*320)/(disH); 
+  int lineH = (mapS*640)/(disH); 
   float ty_step=64.0/(float)lineH; 
   float ty_off=0; 
-  if(lineH>320){ ty_off=(lineH-320)/2.0; lineH=320;}                            //line height and limit
-  int lineOff = 160 - (lineH>>1);                                               //line offset
+  if(lineH>640){ ty_off=(lineH-640)/2.0; lineH=640;}                            //line height and limit
+  int lineOff = 320 - (lineH>>1);                                               //line offset
 
+depth[r]=disH; //save this line's depth
   //---draw walls---
   int y;
   float ty=ty_off*ty_step;
@@ -184,36 +205,116 @@ void drawRays2D(SDL_Renderer *renderer)
    int red   =all_textures(hmt,pixel+0)*shade;
    int green =all_textures(hmt,pixel+1)*shade;
    int blue  =all_textures(hmt,pixel+2)*shade;//door green
-   drawPixel(renderer,8,8,red,green,blue, r*8+530,y+lineOff);//draw vertical wall  
-//    if(hmt==0){ glColor3f(c    , c/2.0, c/2.0);} //checkerboard red
-//    if(hmt==1){ glColor3f(c    , c    , c/2.0);} //Brick yellow
-//    if(hmt==2){ glColor3f(c/2.0, c/2.0, c    );} //window blue
-//    if(hmt==3){ glColor3f(c/2.0, c    , c/2.0);} //door green
-//    glPointSize(8);glBegin(GL_POINTS);glVertex2i(r*8+530,y+lineOff);glEnd();//draw vertical wall  
+   drawPixel(renderer,8,8,red,green,blue, r*8,y+lineOff);//draw vertical wall  
+  
    ty+=ty_step;
   }
 
-  // ------draw floors-----
-   for(y=lineOff+lineH;y<320;y++)
+ // ------draw floors-----
+   for(y=lineOff+lineH;y<640;y++)
  {
-  float dy=y-(320/2.0), deg=degToRad(ra), raFix=cos(degToRad(FixAng(pa-ra)));
+  float dy=y-(640/2.0), deg=degToRad(ra), raFix=cos(degToRad(FixAng(pa-ra)));
   tx=px/2 + cos(deg)*158*2*32/dy/raFix;
   ty=py/2 - sin(deg)*158*2*32/dy/raFix;
-  int mp=mapF[(int)(ty/32.0)*mapX+(int)(tx/32.0)]*32*32;
-  int pixel=(((int)(py + ty*2)&63)*64 + ((int)(px + tx*2)&63))*3+mp*3;
+//   int mp=mapF[(int)(ty/32.0)*mapX+(int)(tx/32.0)]*32*32;
+  int pixel=(((int)(py + ty*2)&63)*64 + ((int)(px + tx*2)&63))*3;
 //   int pixel=(((int)(ty)&63)*64 + ((int)(tx)&63))*3+mp*3;
   int red   =grass[pixel+0]*0.7;
   int green =grass[pixel+1]*0.7;
   int blue  =grass[pixel+2]*0.7;
-  drawPixel(renderer,8,8,red,green,blue,r*8+530,y);
+  drawPixel(renderer,8,8,red,green,blue,r*8,y);
 
  
  }
  
-       ra=FixAng(ra-1); 
+       ra=FixAng(ra-0.5); 
     }
 
 }
+void drawSprite(SDL_Renderer *renderer)
+{
+    
+ int x,y,s;
+ if(sp[0].state == 1 && px<sp[0].x+30 && px>sp[0].x-30 && py<sp[0].y+30 && py>sp[0].y-30){ keyCount += 1; sp[0].state=0;} //pick up key 	
+ if(sp[1].state == 1 && px<sp[1].x+30 && px>sp[1].x-30 && py<sp[1].y+30 && py>sp[1].y-30){ diamondCount += 1; sp[1].state=0;} //pick up diamond 	
+ if(px<sp[3].x+30 && px>sp[3].x-30 && py<sp[3].y+30 && py>sp[3].y-30){ heartCount -= 1; if (heartCount == 0){closeGame = 1;}gameState=4;} //enemy kills
+
+ //enemy attack
+ int spx=(int)sp[3].x>>6,          spy=(int)sp[3].y>>6;          //normal grid position
+ int spx_add=((int)sp[3].x+15)>>6, spy_add=((int)sp[3].y+15)>>6; //normal grid position plus     offset
+ int spx_sub=((int)sp[3].x-15)>>6, spy_sub=((int)sp[3].y-15)>>6; //normal grid position subtract offset
+ if(sp[3].x>px && map[spy*8+spx_sub]==0){ sp[3].x-=0.04*fps;}
+ if(sp[3].x<px && map[spy*8+spx_add]==0){ sp[3].x+=0.04*fps;}
+ if(sp[3].y>py && map[spy_sub*8+spx]==0){ sp[3].y-=0.04*fps;}
+ if(sp[3].y<py && map[spy_add*8+spx]==0){ sp[3].y+=0.04*fps;}
+
+ for(s=0;s<4;s++)
+ {
+  float sx=sp[s].x-px; //temp float variables
+  float sy=sp[s].y-py;
+  float sz=sp[s].z;
+
+  float CS=cos(degToRad(pa)), SN=sin(degToRad(pa)); //rotate around origin
+  float a=sy*CS+sx*SN; 
+  float b=sx*CS-sy*SN; 
+  sx=a; sy=b;
+
+  sx=(sx*108.0/sy)+(120/2); //convert to screen x,y
+  sy=(sz*108.0/sy)+( 80/2);
+
+  int scale=32*80/b;   //scale sprite based on distance
+  if(scale<0){ scale=0;} if(scale>120){ scale=120;}  
+
+  //texture
+  float t_x=0, t_y=31, t_x_step=31.5/(float)scale, t_y_step=32.0/(float)scale;
+
+  for(x=sx-scale/2;x<sx+scale/2;x++)
+  {
+   t_y=31;
+   for(y=0;y<scale;y++)
+   {
+    if(sp[s].state==1 && x>0 && x<120 && b<depth[x])
+    {
+        
+     int pixel=((int)t_y*32+(int)t_x)*3;
+     int red   =all_textures(sp[s].map,pixel+0);
+     int green =all_textures(sp[s].map,pixel+1);
+     int blue  =all_textures(sp[s].map,pixel+2);
+     if(red!=0, green!=0, blue!=0) //dont draw if purple
+     {
+      drawPixel(renderer, 8,8,red,green,blue, x*8,sy*8-y*8);
+     }
+     t_y-=t_y_step; if(t_y<0){ t_y=0;}
+    }
+   }
+   t_x+=t_x_step;
+  }
+ }
+}
+
+
+void screen(SDL_Renderer *renderer,int v) //draw any full screen image. 120x80 pixels
+{
+ int x,y;
+ int *T;
+ if(v==1){ T=title;}
+ if(v==2){ T=won;}
+ if(v==3){ T=lost;}
+ for(y=0;y<80;y++)
+ {
+  for(x=0;x<120;x++)
+  {
+   int pixel=(y*120+x)*3;
+   int red   =T[pixel+0]*fade;
+   int green =T[pixel+1]*fade;
+   int blue  =T[pixel+2]*fade;
+   drawPixel(renderer,8,8, red,green,blue,x*8,y*8);
+  }	
+ }	
+ if(fade<1){ fade+=0.001*fps;} 
+ if(fade>1){ fade=1;}
+}
+
 void drawSky(SDL_Renderer *renderer)     //draw sky and rotate based on player rotation
 {int x,y;
  for(y=0;y<40;y++)
@@ -225,49 +326,99 @@ void drawSky(SDL_Renderer *renderer)     //draw sky and rotate based on player r
    int red   =sky[pixel+0];
    int green =sky[pixel+1];
    int blue  =sky[pixel+2];
-   drawPixel(renderer,8,8,red,green,blue, x*8+530,y*8);
+   drawPixel(renderer,8,8,red,green,blue, x*8,y*8);
   }	
  }
 }
-void drawStatistics(SDL_Renderer *renderer)
+void drawStatistics(SDL_Renderer *renderer, int x)
 {
-    // drawPixel(renderer, 530,320, 215,200,0,530, 340);
-    SDL_Rect stat = {530,340,500,180};
+    // Stats board
+    SDL_Rect stat = {x,0,300,200};
     SDL_RenderCopy(renderer,stats,NULL,&stat);
-    // SDL_Rect key = {530,340,500,180};
-    // SDL_RenderCopy(renderer,stats,NULL,&key);
-    // SDL_RenderDrawRect(renderer, &key);
-    // SDL_RenderFillRect(renderer,&key);
+
+    // health stats
+    SDL_Rect score = {x + 65,142,15, 15};
+    SDL_RenderCopy(renderer,scores[heartCount],NULL,&score);
+    
+    // diamond stats
+    score.x =x +137;
+    SDL_RenderCopy(renderer,scores[diamondCount],NULL,&score);
+    
+    // key stats
+    score.x =x+212;
+    SDL_RenderCopy(renderer,scores[keyCount],NULL,&score);
+ 
     
 }
 void display(SDL_Renderer *renderer)
 {
-    // frame2=SDL_GetTicks64(); fps=(frame2-frame1); frame1=SDL_GetTicks64(); 
- drawMap2D(renderer);
+    frame2=SDL_GetTicks64(); fps=(frame2-frame1); frame1=SDL_GetTicks64(); 
+if(gameState==0){ fade=0; timer=0; gameState=1;} //init game
+ if(gameState==1){ screen(renderer,1); timer+=1*fps; if(timer>2000){ fade=0; timer=0; gameState=2;}} //start screen
+ if (gameState==2){
  drawSky(renderer);
- drawPlayer2D(renderer);
+//  
  drawRays2D(renderer);
- drawStatistics(renderer);
-
+ drawSprite(renderer);
+ 
+ if (drawMap == 0)
+ {
+    drawStatistics(renderer, WINDOW_WIDTH - 300);
+    drawMap2D(renderer);
+    drawPlayer2D(renderer);
+ }
+ else{
+    drawStatistics(renderer,0);
+ }
+ }
 }
 
 
 
-void init(SDL_Renderer *renderer, SDL_Event event,SDL_Texture* wallTex, SDL_Texture* statsTexture)
+void init(SDL_Renderer *renderer, SDL_Event event)
 {
     // fps = 25;
     px=150; py=400; pa=90;
-    keys = wallTex;
-    stats = statsTexture;
-    int close_game = 0;
+
+    SDL_Surface* surface = IMG_Load("../resources/keys.png");
+    keys =SDL_CreateTextureFromSurface(renderer, surface);
+
+    surface = IMG_Load("../resources/stat.png");
+    stats =  SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    
+    SDL_Surface **surface1 = malloc(sizeof(SDL_Surface)* 5);
+    surface1[0] = IMG_Load("../resources/zero.png");
+    surface1[1] = IMG_Load("../resources/one.png");
+    surface1[2]= IMG_Load("../resources/two.png");
+    surface1[3] = IMG_Load("../resources/three.png");
+    surface1[4]= IMG_Load("../resources/four.png");
+    surface1[5]= IMG_Load("../resources/five.png");
+    scores =  malloc(sizeof(SDL_Surface)* 6);
+
+    for (int i = 0; i < 6; i++)
+    {
+        scores[i] = SDL_CreateTextureFromSurface(renderer, surface1[i]);
+        SDL_FreeSurface(surface1[i]);
+    }
+    free(surface1);
+    
+    keyCount=0, heartCount=5, diamondCount=0;
+
+    sp[0].type=1; sp[0].state=1; sp[0].map=4; sp[0].x=1.5*64; sp[0].y=5*64;   sp[0].z=20; //key
+    sp[1].type=2; sp[1].state=1; sp[1].map=5; sp[1].x=1.5*64; sp[1].y=4.5*64; sp[1].z= 20; //light 1
+    sp[2].type=2; sp[2].state=1; sp[2].map=5; sp[2].x=4.5*64; sp[2].y=4.5*64; sp[2].z=20; //light 2
+    sp[3].type=3; sp[3].state=1; sp[3].map=6; sp[3].x=2.5*64; sp[3].y=2*64;   sp[3].z=20; //enemy
+    
+    
     pdx=cos(degToRad(pa)); pdy=-sin(degToRad(pa));
-    while (close_game == 0) {
+    while (closeGame == 0) {
 
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            if (buttons(event) == -1)
-                close_game = 1;
+            if (buttons(renderer, event) == -1 )
+                closeGame = 1;
                 break;
         }
         SDL_SetRenderDrawColor(renderer,70,70,70,0);
