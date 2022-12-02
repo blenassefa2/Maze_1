@@ -9,8 +9,9 @@
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
 
-#define WINDOW_WIDTH (1024)
-#define WINDOW_HEIGHT (510)
+
+#define WINDOW_WIDTH (960)
+#define WINDOW_HEIGHT (640)
 
 #define SPEED (300)
 
@@ -24,14 +25,15 @@
 #define DR 0.01754533 //one degreee in radians
 
 
-void drawMap2D(SDL_Renderer *renderer);
-void drawPlayer2D(SDL_Renderer *renderer);
-int buttons(SDL_Event event,int x,int y);
-void drawRays2D(SDL_Renderer *renderer);
-void display(SDL_Renderer *renderer);
-void init(SDL_Renderer *renderer, SDL_Event event);
+void drawMap2D();
+void drawPlayer2D();
+int buttons(SDL_Event event);
+void drawRays2D();
+void display();
+void init();
+void setUp(SDL_Renderer *gameRenderer);
+void startGame(SDL_Event event);
 float degToRad(int a);
-int FixAng(int a);
-float distance(float ax, float ay, float bx, float by, float ang);
+float FixAng(float a);
 
 #endif
